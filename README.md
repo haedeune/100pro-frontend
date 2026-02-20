@@ -1,2 +1,3 @@
 # 100pro-frontend
-It's for 100pro frontend
+100pro frontend는 '5늘할일' 프론트엔드를 구상하고 구현하는 공간입니다.
+사용자에게 실제로 보여지는 화면(UI)을 만들고, 더 편리한 사용 경험(UX)을 고민합니다.
