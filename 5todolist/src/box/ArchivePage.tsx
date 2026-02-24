@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import dayjs from 'dayjs'
 import { useTodoStore } from '../5todolist/todoStore'
+import { useAuthStore } from '../authetication/authStore'
 
 export function ArchivePage() {
   const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const todos = useTodoStore((state) => state.todos)
   const removeTodo = useTodoStore((state) => state.removeTodo)
   const restoreTodo = useTodoStore((state) => state.restoreTodo)
@@ -14,6 +17,19 @@ export function ArchivePage() {
     () => archivedTodos.filter((todo) => !todo.isDone),
     [archivedTodos],
   )
+
+  const hasAlerted = useRef(false)
+
+  useEffect(() => {
+    if (!isAuthenticated && !hasAlerted.current) {
+      hasAlerted.current = true
+      alert("보관함은 로그인 후 이용 가능한 기능입니다.")
+      navigate('/login', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
+
+  if (!isAuthenticated) return null
+
   useEffect(() => {
     if (!menuTodoId) return
 
@@ -40,12 +56,18 @@ export function ArchivePage() {
           <article
             key={todo.id}
             className="todo-card archive-card archive-card-clickable"
+            style={{ alignItems: 'flex-start' }}
             onClick={() => {
               setMenuTodoId(null)
               navigate(`/todo/${todo.id}`, { state: { from: 'archive' } })
             }}
           >
-            <p className="archive-title">{todo.title}</p>
+            <div className="archive-content" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+              <p className="archive-title">{todo.title}</p>
+              <p className="archive-date" style={{ fontSize: '12px', color: '#999', fontWeight: 400 }}>
+                {dayjs(todo.createdAt).format('YYYY.MM.DD')}
+              </p>
+            </div>
             <div className="archive-actions-wrap">
               <button
                 type="button"

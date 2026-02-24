@@ -44,6 +44,11 @@ export const useAuthStore = create<AuthState>()(
           }
           const data = await res.json()
           set({ isAuthenticated: true, provider: 'email', user: data.user, token: data.access_token })
+
+          import('../5todolist/todoStore').then(({ useTodoStore }) => {
+            useTodoStore.getState().migrateAndFetch()
+          })
+
           return { ok: true }
         } catch {
           return { ok: false, reason: '서버에 연결할 수 없습니다.' }
@@ -52,6 +57,9 @@ export const useAuthStore = create<AuthState>()(
 
       loginWithToken: (token, user, provider) => {
         set({ isAuthenticated: true, provider, user, token })
+        import('../5todolist/todoStore').then(({ useTodoStore }) => {
+          useTodoStore.getState().migrateAndFetch()
+        })
       },
 
       signup: async (userData) => {
@@ -84,6 +92,11 @@ export const useAuthStore = create<AuthState>()(
           }
           const data = await res.json()
           set({ isAuthenticated: true, provider: 'kakao', user: data.user, token: data.access_token })
+
+          import('../5todolist/todoStore').then(({ useTodoStore }) => {
+            useTodoStore.getState().migrateAndFetch()
+          })
+
           return { ok: true }
         } catch {
           return { ok: false, reason: '서버에 연결할 수 없습니다.' }
@@ -92,6 +105,9 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({ isAuthenticated: false, provider: null, user: null, token: null })
+        import('../5todolist/todoStore').then(({ useTodoStore }) => {
+          useTodoStore.getState().clearStore()
+        })
       },
 
       deleteAccount: () => {
@@ -105,6 +121,9 @@ export const useAuthStore = create<AuthState>()(
             headers: { Authorization: `Bearer ${token}` },
           }).catch(() => { })
         }
+        import('../5todolist/todoStore').then(({ useTodoStore }) => {
+          useTodoStore.getState().clearStore()
+        })
       },
     }),
     { name: 'five-auth-store' },

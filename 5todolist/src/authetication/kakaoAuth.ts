@@ -30,7 +30,7 @@ async function loadKakaoSdk(): Promise<KakaoSdk> {
   return w.Kakao
 }
 
-export async function authorizeWithKakao(redirectTo: string) {
+export async function authorizeWithKakao(redirectTo: string, isLinking = false) {
   const jsKey = getKakaoJsKey()
   if (!jsKey) throw new Error('VITE_KAKAO_JS_KEY가 설정되지 않았습니다.')
 
@@ -41,6 +41,7 @@ export async function authorizeWithKakao(redirectTo: string) {
   const nonce = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
   sessionStorage.setItem('kakao_oauth_state', nonce)
   sessionStorage.setItem('kakao_oauth_redirect', redirectTo)
+  sessionStorage.setItem('kakao_oauth_action', isLinking ? 'link' : 'login')
 
   kakao.Auth.authorize({ redirectUri: getRedirectUri(), state: nonce })
 }

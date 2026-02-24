@@ -2,6 +2,8 @@ import { LogOut, MessageCircle, Trophy, User } from 'lucide-react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTodoStore } from '../5todolist/todoStore'
 import { useAuthStore } from './authStore'
+import { authorizeWithKakao } from './kakaoAuth'
+import { useState } from 'react'
 
 export function MyPage() {
     const navigate = useNavigate()
@@ -13,8 +15,15 @@ export function MyPage() {
         navigate('/login', { replace: true })
     }
 
-    const handleKakaoLink = () => {
-        alert('카카오 계정 연동 기능은 준비 중입니다.')
+    const [kakaoLinkError, setKakaoLinkError] = useState('')
+
+    const handleKakaoLink = async () => {
+        try {
+            setKakaoLinkError('')
+            await authorizeWithKakao('/mypage', true)
+        } catch (error) {
+            setKakaoLinkError(error instanceof Error ? error.message : '카카오 연동을 시작할 수 없습니다.')
+        }
     }
 
     const handleDeleteAccount = () => {
@@ -101,8 +110,8 @@ export function MyPage() {
 
                 <div style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
                     <button
-                        onClick={handleKakaoLink}
-                        style={{ width: '100%', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', borderBottom: '1px solid #f2f2f5', cursor: 'pointer', transition: 'background 0.2s' }}
+                        onClick={user.provider === 'kakao' ? () => { } : handleKakaoLink}
+                        style={{ width: '100%', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', borderBottom: '1px solid #f2f2f5', cursor: user.provider === 'kakao' ? 'default' : 'pointer', transition: 'background 0.2s', opacity: user.provider === 'kakao' ? 0.8 : 1 }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                             <div style={{ background: '#FEE500', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -110,8 +119,13 @@ export function MyPage() {
                             </div>
                             <span style={{ fontSize: '16px', color: '#292929', fontWeight: '600' }}>카카오 계정 연동</span>
                         </div>
-                        <span style={{ fontSize: '14px', color: '#999', fontWeight: '500' }}>미연동</span>
+                        <span style={{ fontSize: '14px', color: user.provider === 'kakao' ? '#292929' : '#999', fontWeight: user.provider === 'kakao' ? '700' : '500' }}>
+                            {user.provider === 'kakao' ? '연동됨' : '미연동'}
+                        </span>
                     </button>
+                    {kakaoLinkError && (
+                        <div style={{ padding: '10px 20px', color: 'red', fontSize: '13px' }}>{kakaoLinkError}</div>
+                    )}
 
                     <button
                         onClick={handleLogout}

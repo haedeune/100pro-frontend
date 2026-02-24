@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from './authStore'
 
@@ -8,8 +8,10 @@ export function KakaoCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const loginWithToken = useAuthStore((state) => state.loginWithToken)
+  const token = useAuthStore((state) => state.token)
   const [failed, setFailed] = useState(false)
   const [failReason, setFailReason] = useState('')
+  const hasFetched = useRef(false)
 
   const code = searchParams.get('code')
   const error = searchParams.get('error')
@@ -23,10 +25,16 @@ export function KakaoCallbackPage() {
       return
     }
 
+    if (hasFetched.current) return
+    hasFetched.current = true
+
     const savedState = sessionStorage.getItem('kakao_oauth_state')
     const redirectTo = sessionStorage.getItem('kakao_oauth_redirect') ?? '/home'
+    const action = sessionStorage.getItem('kakao_oauth_action') ?? 'login'
+
     sessionStorage.removeItem('kakao_oauth_state')
     sessionStorage.removeItem('kakao_oauth_redirect')
+    sessionStorage.removeItem('kakao_oauth_action')
 
     if (!savedState || savedState !== state) {
       console.error('[Kakao] state mismatch:', { savedState, state })
@@ -35,11 +43,16 @@ export function KakaoCallbackPage() {
       return
     }
 
-    console.log('[Kakao] code 수신, 백엔드로 전송 중...')
+    console.log('[Kakao] code 수신, 백엔드로 전송 중... (action:', action, ')')
+
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    if (action === 'link' && token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
 
     fetch(`${API_BASE}/auth/kakao`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ code }),
     })
       .then(async (res) => {

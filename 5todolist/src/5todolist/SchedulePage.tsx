@@ -10,6 +10,7 @@ import {
 import { Archive, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTodoStore, type TodoItem } from './todoStore'
+import { useAuthStore } from '../authetication/authStore'
 
 type DayRecord = {
   id: string
@@ -150,6 +151,7 @@ function SwipeablePastActiveRow({
 export function SchedulePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const todos = useTodoStore((state) => state.todos)
   const deletedTodos = useTodoStore((state) => state.deletedTodos)
   const toggleDone = useTodoStore((state) => state.toggleDone)
@@ -259,6 +261,12 @@ export function SchedulePage() {
             type="button"
             className="calendar-month-nav"
             onClick={() => {
+              if (!isAuthenticated) {
+                if (window.confirm("과거 달력 조회는 로그인 후 이용 가능합니다. 로그인하시겠습니까?")) {
+                  navigate('/login')
+                }
+                return
+              }
               setVisibleMonth((prev) => prev.subtract(1, 'month'))
               setSelectedDateKey(null)
             }}
@@ -272,6 +280,12 @@ export function SchedulePage() {
             className="calendar-month-nav"
             onClick={() => {
               if (!isCurrentMonth) {
+                if (!isAuthenticated) {
+                  if (window.confirm("날짜 이동은 로그인 후 이용 가능합니다. 로그인하시겠습니까?")) {
+                    navigate('/login')
+                  }
+                  return
+                }
                 setVisibleMonth((prev) => prev.add(1, 'month'))
                 setSelectedDateKey(null)
               }

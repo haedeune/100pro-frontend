@@ -16,10 +16,15 @@ export function ComposePage() {
   const navigate = useNavigate()
   const { addTodo, todos } = useTodoStore()
   const [submitError, setSubmitError] = useState('')
-  const activeCount = useMemo(
-    () => todos.filter((todo) => !todo.archived).length,
-    [todos],
-  )
+  const activeCount = useMemo(() => {
+    const localDateStr = (iso: string) => {
+      const d = new Date(iso)
+      if (Number.isNaN(d.getTime())) return ''
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+    const todayStr = localDateStr(new Date().toISOString())
+    return todos.filter((todo) => !todo.archived && localDateStr(todo.createdAt) === todayStr).length
+  }, [todos])
 
   const {
     register,
@@ -30,10 +35,13 @@ export function ComposePage() {
     defaultValues: { title: '', memo: '' },
   })
 
-  const onSubmit = (values: ComposeValues) => {
+  const onSubmit = async (values: ComposeValues) => {
     try {
-      const result = addTodo(values.title, values.memo ?? '')
-      if (!result.ok) return setSubmitError(result.reason ?? '등록 실패')
+      const result = await addTodo(values.title, values.memo ?? '')
+      if (!result.ok) {
+        setSubmitError(result.reason ?? '등록 실패')
+        return
+      }
       navigate('/home', { replace: true })
     } catch {
       setSubmitError('등록 중 오류가 발생했어요. 다시 시도해주세요.')
