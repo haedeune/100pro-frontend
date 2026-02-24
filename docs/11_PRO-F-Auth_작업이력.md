@@ -87,6 +87,23 @@ sessionStorage.setItem('kakao_oauth_redirect', redirectTo)
 
 ---
 
+## 프론트엔드 작업 이력 — 데이터 마이그레이션 & 게스트 모드 (PRO-B-48)
+
+### 주요 변경 내용
+
+#### 1. `todoStore.ts` — API 통신 및 게스트 제어
+- 로컬 스토리지에만 의존하던 기존 로직(mock)을 모두 들어냄.
+- 로그인한 유저에 한해 `fetchTodos`로 백엔드 DB 데이터를 동기화함.
+- `migrateAndFetch` 함수를 신설: 게스트 상태에서 기록된 할 일 항목을 식별(`id`가 'todo-'로 시작)하여, 유저가 로그인하는 즉시 백엔드로 `POST /tasks` 승격 전송 후 로컬스토어 동기화.
+
+#### 2. `authStore.ts` — 계정 전환 Hook
+- `login`, `kakaoAuth` 등의 액션 성공 시 `todoStore.getState().migrateAndFetch()`가 자동 호출되도록 트리거 로직 추가.
+- `logout`, `deleteAccount` 발생 시 `todoStore.getState().clearStore()`를 호출하여 타인 계정 잔재를 비움.
+
+#### 3. UX 접근 제어 로직 (`ArchivePage`, `SchedulePage`)
+- 비로그인 유저가 보관함에 진입하거나, 캘린더에서 과거/미래로 이동하려 할 때 `useAuthStore`의 `isAuthenticated` 상태를 이용해 차단.
+- React StrictMode 더블 렌더링으로 인해 `alert` 창이 두 번 뜨는 버그를 `useRef`로 해결.
+
 ## 환경 변수 설정
 
 ### `.env.local` (gitignore, 직접 생성 필요)
