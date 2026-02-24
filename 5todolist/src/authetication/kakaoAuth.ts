@@ -37,9 +37,12 @@ export async function authorizeWithKakao(redirectTo: string) {
   const kakao = await loadKakaoSdk()
   if (!kakao.isInitialized()) kakao.init(jsKey)
 
-  const state = btoa(encodeURIComponent(JSON.stringify({ redirectTo })))
-  sessionStorage.setItem('kakao_oauth_state', state)
-  kakao.Auth.authorize({ redirectUri: getRedirectUri(), state })
+  // 영숫자만 사용하는 랜덤 nonce (URL 인코딩 문제 없음)
+  const nonce = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2)
+  sessionStorage.setItem('kakao_oauth_state', nonce)
+  sessionStorage.setItem('kakao_oauth_redirect', redirectTo)
+
+  kakao.Auth.authorize({ redirectUri: getRedirectUri(), state: nonce })
 }
 
 export function parseKakaoState(encoded: string | null): { redirectTo: string } | null {

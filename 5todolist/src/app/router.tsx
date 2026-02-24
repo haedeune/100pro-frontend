@@ -6,6 +6,8 @@ import { SchedulePage } from '../5todolist/SchedulePage'
 import { TodoDetailPage } from '../5todolist/TodoDetailPage'
 import { KakaoCallbackPage } from '../authetication/KakaoCallbackPage'
 import { LoginPage } from '../authetication/LoginPage'
+import { SignupPage } from '../authetication/SignupPage'
+import { MyPage } from '../authetication/MyPage'
 import { SplashPage } from '../firstpage/SplashPage'
 import { MobileLayout } from '../layouts/MobileLayout'
 import { NotFoundPage } from './NotFoundPage'
@@ -25,6 +27,8 @@ export const appRouter = createBrowserRouter([
       { path: 'todo/:id', element: <TodoDetailPage /> },
       { path: 'archive', element: <ArchivePage /> },
       { path: 'login', element: <LoginPage /> },
+      { path: 'signup', element: <SignupPage /> },
+      { path: 'mypage', element: <MyPage /> },
       { path: 'auth/kakao/callback', element: <KakaoCallbackPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

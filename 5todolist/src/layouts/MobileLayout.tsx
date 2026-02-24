@@ -13,7 +13,7 @@ const navItems = [
   { to: '/schedule', label: '캘린더', icon: CalendarDays },
   { to: '/compose', label: '등록', icon: ArrowUpCircle, isCenter: true },
   { to: '/archive', label: '보관함', icon: Archive },
-  { to: '/login', label: '마이', icon: UserCircle2 },
+  { to: '/mypage', label: '마이', icon: UserCircle2 },
 ]
 
 function NavItemIcon({ Icon, center }: { Icon: LucideIcon; center?: boolean }) {

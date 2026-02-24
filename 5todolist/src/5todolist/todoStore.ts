@@ -8,6 +8,7 @@ export type TodoItem = {
   isDone: boolean
   archived: boolean
   createdAt: string
+  userEmail?: string
 }
 
 export type DeletedTodoItem = TodoItem & {
@@ -17,7 +18,7 @@ export type DeletedTodoItem = TodoItem & {
 type TodoState = {
   todos: TodoItem[]
   deletedTodos: DeletedTodoItem[]
-  addTodo: (title: string, memo?: string, createdAt?: string) => { ok: boolean; reason?: string }
+  addTodo: (title: string, memo?: string, createdAt?: string, userEmail?: string) => { ok: boolean; reason?: string }
   toggleDone: (id: string) => void
   removeTodo: (id: string) => void
   insertTodo: (todo: TodoItem, index?: number) => void
@@ -79,6 +80,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: false,
     createdAt: dateFromToday(0, 10, 0),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd23-1',
@@ -87,6 +89,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: false,
     createdAt: dateFromToday(-1, 9, 20),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd23-2',
@@ -95,6 +98,7 @@ const seedTodos: TodoItem[] = [
     isDone: true,
     archived: false,
     createdAt: dateFromToday(-1, 11, 15),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd23-3',
@@ -103,6 +107,7 @@ const seedTodos: TodoItem[] = [
     isDone: true,
     archived: false,
     createdAt: dateFromToday(-1, 13, 50),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd23-4',
@@ -111,6 +116,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: true,
     createdAt: dateFromToday(-1, 16, 40),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd22-1',
@@ -119,6 +125,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: false,
     createdAt: dateFromToday(-2, 9, 10),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd22-2',
@@ -127,6 +134,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: false,
     createdAt: dateFromToday(-2, 10, 45),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd22-3',
@@ -135,6 +143,7 @@ const seedTodos: TodoItem[] = [
     isDone: true,
     archived: false,
     createdAt: dateFromToday(-2, 11, 20),
+    userEmail: 'test@test.com',
   },
   {
     id: 'd22-4',
@@ -143,6 +152,7 @@ const seedTodos: TodoItem[] = [
     isDone: false,
     archived: true,
     createdAt: dateFromToday(-2, 15, 40),
+    userEmail: 'test@test.com',
   },
 ]
 
@@ -155,6 +165,7 @@ const seedDeletedTodos: DeletedTodoItem[] = [
     archived: false,
     createdAt: dateFromToday(-1, 18, 15),
     deletedAt: dateFromToday(0, 9, 0),
+    userEmail: 'test@test.com',
   },
   {
     id: 'deleted-d22',
@@ -164,6 +175,7 @@ const seedDeletedTodos: DeletedTodoItem[] = [
     archived: false,
     createdAt: dateFromToday(-2, 18, 40),
     deletedAt: dateFromToday(-1, 9, 30),
+    userEmail: 'test@test.com',
   },
 ]
 
@@ -172,7 +184,7 @@ export const useTodoStore = create<TodoState>()(
     (set, get) => ({
       todos: seedTodos,
       deletedTodos: seedDeletedTodos,
-      addTodo: (title: string, memo = '', createdAt?: string) => {
+      addTodo: (title: string, memo = '', createdAt?: string, userEmail?: string) => {
         const todayKey = toLocalDateKey(new Date().toISOString())
         const activeCount = get().todos.filter(
           (todo) => !todo.archived && toLocalDateKey(todo.createdAt) === todayKey,
@@ -198,6 +210,7 @@ export const useTodoStore = create<TodoState>()(
           isDone: false,
           archived: false,
           createdAt: normalizedCreatedAt,
+          userEmail,
         }
         set((state) => ({ todos: [newTodo, ...state.todos] }))
         return { ok: true }
@@ -250,11 +263,11 @@ export const useTodoStore = create<TodoState>()(
           todos: state.todos.map((todo) =>
             todo.id === id
               ? {
-                  ...todo,
-                  archived: false,
-                  isDone: false,
-                  createdAt: new Date().toISOString(),
-                }
+                ...todo,
+                archived: false,
+                isDone: false,
+                createdAt: new Date().toISOString(),
+              }
               : todo,
           ),
         })),

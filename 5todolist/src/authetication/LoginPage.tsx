@@ -19,6 +19,7 @@ export function LoginPage() {
   const login = useAuthStore((state) => state.login)
   const redirectTo = searchParams.get('redirect') ?? '/home'
   const [kakaoError, setKakaoError] = useState('')
+  const [loginError, setLoginError] = useState('')
   const kakaoReady = Boolean(import.meta.env.VITE_KAKAO_JS_KEY)
 
   const {
@@ -30,9 +31,14 @@ export function LoginPage() {
     defaultValues: { email: 'test@test.com', password: '' },
   })
 
-  const onSubmit = () => {
-    login('email')
-    navigate(redirectTo, { replace: true })
+  const onSubmit = async (data: LoginFormValues) => {
+    setLoginError('')
+    const result = await login(data.email, data.password)
+    if (result.ok) {
+      navigate(redirectTo, { replace: true })
+    } else {
+      setLoginError(result.reason || '로그인에 실패했습니다.')
+    }
   }
 
   const onKakaoLogin = async () => {
@@ -116,6 +122,7 @@ export function LoginPage() {
             {errors.password ? (
               <span className="error-text">{errors.password.message}</span>
             ) : null}
+            {loginError ? <span className="error-text">{loginError}</span> : null}
           </label>
           <div className="login-meta-row">
             <label className="login-keep">
@@ -131,7 +138,7 @@ export function LoginPage() {
           </button>
           <div className="login-signup-row">
             <span>아직 회원이 아니세요?</span>
-            <button type="button" className="link-button login-signup-button">
+            <button type="button" className="link-button login-signup-button" onClick={() => navigate('/signup')}>
               회원가입
             </button>
           </div>

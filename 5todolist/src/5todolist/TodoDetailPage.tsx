@@ -17,7 +17,7 @@ export function TodoDetailPage() {
   const [title, setTitle] = useState('')
   const [memo, setMemo] = useState('')
   const [error, setError] = useState('')
-  const isPastTodo = dayjs(todo.createdAt).startOf('day').isBefore(dayjs().startOf('day'))
+  const isPastTodo = dayjs(todo?.createdAt).startOf('day').isBefore(dayjs().startOf('day'))
 
   if (!id || !todo) return <Navigate to="/home" replace />
 

@@ -222,7 +222,7 @@ export function HomePage() {
     <section className="screen">
       <header className="screen-header home-header">
         <h1 className="home-logo">5늘할일</h1>
-        <p>오늘 기준 {dayjs().format('YYYY.MM.DD')}</p>
+        <p>{dayjs().format('YYYY.MM.DD')}</p>
       </header>
 
       <section className="todo-section">

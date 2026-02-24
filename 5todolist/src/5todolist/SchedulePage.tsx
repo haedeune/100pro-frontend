@@ -124,9 +124,8 @@ function SwipeablePastActiveRow({
       </div>
       <button
         type="button"
-        className={`calendar-selected-item calendar-selected-item-swipe${isDragging ? ' is-dragging' : ''}${
-          isCompleteFlash ? ' is-complete-flash' : ''
-        }`}
+        className={`calendar-selected-item calendar-selected-item-swipe${isDragging ? ' is-dragging' : ''}${isCompleteFlash ? ' is-complete-flash' : ''
+          }`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
@@ -142,7 +141,7 @@ function SwipeablePastActiveRow({
           />
         </span>
         <span>{item.title}</span>
-        <em>진행 중</em>
+        <em>확인 중</em>
       </button>
     </div>
   )

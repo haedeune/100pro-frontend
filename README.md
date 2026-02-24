@@ -54,18 +54,32 @@ npm run dev
 ### 4) 브라우저 접속
 터미널에 출력되는 주소(기본값 `http://localhost:5173`)로 접속합니다.
 
-## 환경변수 설정 (선택)
-카카오 로그인 연동 시 아래 과정을 사용합니다.
+## 환경변수 및 카카오 로그인(SSO) 연동 가이드
 
-1. `5todolist/.env.example`을 복사해서 `.env` 생성
-2. 값 입력
+안전한 보안 통신과 카카오 인증을 위해 환경 변수 파일(`.env.local`)을 사용합니다. 프론트엔드 코드 내에 키 값을 하드코딩하지 **않습니다.** (저장소 공유 시 보안 유지)
 
+### 1) `.env.local` 파일 생성
+프로젝트 루트(`5todolist/`)에 `.env.local` 파일을 생성합니다. (`.env`나 `.env.example`을 복사해도 됨)
+
+### 2) VITE 변수 설정
 ```env
-VITE_KAKAO_JS_KEY=
-VITE_KAKAO_REDIRECT_URI=
+# 백엔드 API 서버의 주소
+VITE_API_BASE_URL=http://localhost:8000
+
+# Kakao Developers > 내 애플리케이션 > 앱 키 > JavaScript 키
+VITE_KAKAO_JS_KEY=본인의_카카오_자바스크립트_키를_입력하세요
+
+# 카카오 인가 코드 반환을 위한 리다이렉트 URI (카카오 콘솔 설정과 100% 동일해야 함)
+VITE_KAKAO_REDIRECT_URI=http://localhost:5173/auth/kakao/callback
 ```
 
-> `VITE_`로 시작하는 값은 클라이언트에 노출될 수 있으므로, 비밀 키(서버 전용 시크릿)는 넣지 않습니다.
+### 3) Kakao Developers 콘솔 설정 필수 내역
+카카오 로그인이 브라우저에서 올바르게 구동되려면, [Kakao Developers](https://developers.kakao.com/) 내 애플리케이션 설정에서 다음이 등록되어 있어야 합니다.
+1. **플랫폼 > Web 사이트 도메인**: `http://localhost:5173` 추가
+2. **카카오 로그인 > 활성화 설정**: `ON`
+3. **카카오 로그인 > Redirect URI**: `http://localhost:5173/auth/kakao/callback` 등록
+
+> **보안 주의**: `VITE_KAKAO_JS_KEY`는 클라이언트(브라우저) 측으로 노출되는 안전한 Public 성격의 키입니다. 백엔드에서만 쓰는 비밀번호나 `REST API 키`는 이곳에 넣지 마세요.
 
 ## 폴더 구조 (요약)
 ```text

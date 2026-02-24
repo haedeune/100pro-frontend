@@ -1,33 +1,73 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from './authStore'
-import { parseKakaoState } from './kakaoAuth'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 export function KakaoCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const login = useAuthStore((state) => state.login)
+  const loginWithToken = useAuthStore((state) => state.loginWithToken)
+  const [failed, setFailed] = useState(false)
+  const [failReason, setFailReason] = useState('')
+
   const code = searchParams.get('code')
   const error = searchParams.get('error')
   const state = searchParams.get('state')
 
-  const redirectTo = useMemo(() => parseKakaoState(state)?.redirectTo ?? '/home', [state])
-  const hasError = Boolean(error || !code)
-
   useEffect(() => {
-    if (hasError || !code) return
-    const savedState = sessionStorage.getItem('kakao_oauth_state')
-    sessionStorage.removeItem('kakao_oauth_state')
-    if (!savedState || savedState !== state) return
-    login('kakao')
-    navigate(redirectTo, { replace: true })
-  }, [code, hasError, login, navigate, redirectTo, state])
+    if (error || !code) {
+      console.error('[Kakao] error param or missing code:', { error, code })
+      setFailReason(`카카오 에러: ${error ?? 'code 없음'}`)
+      setFailed(true)
+      return
+    }
 
-  if (hasError) {
+    const savedState = sessionStorage.getItem('kakao_oauth_state')
+    const redirectTo = sessionStorage.getItem('kakao_oauth_redirect') ?? '/home'
+    sessionStorage.removeItem('kakao_oauth_state')
+    sessionStorage.removeItem('kakao_oauth_redirect')
+
+    if (!savedState || savedState !== state) {
+      console.error('[Kakao] state mismatch:', { savedState, state })
+      setFailReason('state 불일치 — 처음부터 다시 시도해주세요.')
+      setFailed(true)
+      return
+    }
+
+    console.log('[Kakao] code 수신, 백엔드로 전송 중...')
+
+    fetch(`${API_BASE}/auth/kakao`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(`백엔드 ${res.status}: ${body.detail ?? 'unknown'}`)
+        }
+        return res.json()
+      })
+      .then((data) => {
+        console.log('[Kakao] 로그인 성공, 유저:', data.user)
+        loginWithToken(data.access_token, data.user, 'kakao')
+        navigate(redirectTo, { replace: true })
+      })
+      .catch((err: Error) => {
+        console.error('[Kakao] 백엔드 호출 실패:', err.message)
+        setFailReason(err.message)
+        setFailed(true)
+      })
+  }, [code, error, loginWithToken, navigate, state])
+
+  if (failed) {
     return (
       <section className="screen screen-center">
         <h1>로그인 처리 중 오류</h1>
         <p className="error-text">카카오 로그인에 실패했습니다.</p>
+        {failReason ? <p style={{ fontSize: '13px', color: '#999' }}>{failReason}</p> : null}
+        <button onClick={() => navigate('/login', { replace: true })}>로그인으로 돌아가기</button>
       </section>
     )
   }
