@@ -10,7 +10,13 @@ import {
 import { Archive, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTodoStore, type TodoItem } from './todoStore'
-import { useAuthStore } from '../authetication/authStore'
+// 경로와 파일명은 실제 저장하신 것에 맞게 수정해주세요!
+import done0 from '../assets/done0.png' 
+import done1 from '../assets/done1.png'
+import done2 from '../assets/done2.png' 
+import done3 from '../assets/done3.png'
+import done4 from '../assets/done4.png' 
+import done5 from '../assets/done5.png'
 
 type DayRecord = {
   id: string
@@ -151,7 +157,6 @@ function SwipeablePastActiveRow({
 export function SchedulePage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const todos = useTodoStore((state) => state.todos)
   const deletedTodos = useTodoStore((state) => state.deletedTodos)
   const toggleDone = useTodoStore((state) => state.toggleDone)
@@ -184,6 +189,16 @@ export function SchedulePage() {
       return acc
     }, {})
   }, [activeTodos])
+  
+  const doneTodoDateMap = useMemo(() => {
+    return todos.reduce<Record<string, number>>((acc, todo) => {
+      if (todo.isDone) {
+        const key = dayjs(todo.createdAt).format('YYYY-MM-DD')
+        acc[key] = (acc[key] ?? 0) + 1
+      }
+      return acc
+    }, {})
+  }, [todos])
 
   const calendarDays = useMemo(() => {
     const monthStart = visibleMonth.startOf('month')
@@ -261,12 +276,6 @@ export function SchedulePage() {
             type="button"
             className="calendar-month-nav"
             onClick={() => {
-              if (!isAuthenticated) {
-                if (window.confirm("과거 달력 조회는 로그인 후 이용 가능합니다. 로그인하시겠습니까?")) {
-                  navigate('/login')
-                }
-                return
-              }
               setVisibleMonth((prev) => prev.subtract(1, 'month'))
               setSelectedDateKey(null)
             }}
@@ -280,12 +289,6 @@ export function SchedulePage() {
             className="calendar-month-nav"
             onClick={() => {
               if (!isCurrentMonth) {
-                if (!isAuthenticated) {
-                  if (window.confirm("날짜 이동은 로그인 후 이용 가능합니다. 로그인하시겠습니까?")) {
-                    navigate('/login')
-                  }
-                  return
-                }
                 setVisibleMonth((prev) => prev.add(1, 'month'))
                 setSelectedDateKey(null)
               }
@@ -312,22 +315,65 @@ export function SchedulePage() {
             const isFuture = day.isAfter(today, 'day')
             const isCurrentMonthCell = day.month() === visibleMonth.month()
             const isSelected = key === selectedDateKey
-            const hasTodo = !isFuture && Boolean(activeTodoDateMap[key])
+            const totalActive = activeTodoDateMap[key] || 0
+            const doneCount = doneTodoDateMap[key] || 0
+            const hasTodo = !isFuture && totalActive > 0
+            const stickerSrc = doneCount === 0 ? done0 : [done1, done2, done3, done4, done5][Math.min(doneCount - 1, 4)]
 
             return (
               <button
                 type="button"
                 key={key}
                 className={`calendar-day${isCurrentMonthCell ? '' : ' is-out-month'}${isToday ? ' is-today' : ''}${isFuture ? ' is-future' : ''}${isSelected ? ' is-selected' : ''}`}
-                aria-label={`${day.format('YYYY년 M월 D일')}${hasTodo ? ' 일정 있음' : ''}${isFuture ? ' 미래 날짜' : ''}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  padding: '8px 4px',
+                  minHeight: '80px',     // 칸 높이 고정
+                  background: '#fff',
+                  border: '1px solid #f0f0f0',
+                  borderRadius: '12px',
+                  cursor: isFuture ? 'default' : 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden'     // 스티커가 삐져나오지 못하게 차단
+                }}
                 onClick={() => {
                   if (isFuture) return
                   setSelectedDateKey(hasTodo ? key : null)
                 }}
                 disabled={isFuture}
               >
-                <span className="calendar-day-number">{day.format('D')}</span>
-                {hasTodo ? <span className="calendar-day-dot" aria-hidden="true" /> : null}
+                <div className="calendar-day-content">
+                  <span className="calendar-day-number">{day.format('D')}</span>
+                  {hasTodo && (
+                    <span className="calendar-sticker-area" aria-hidden="true">
+                     
+                    </span>
+                  )}
+                </div>
+                <div className="calendar-sticker-area" style={{ 
+                  width: '100%', 
+                  height: '45px',       /* 칸 안에서 스티커가 차지할 높이 */
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  marginTop: '2px'      /* 숫자와의 간격 */
+                }}>
+                  {hasTodo && (
+                    <img 
+                      src={stickerSrc} 
+                      alt="sticker" 
+                      style={{ 
+                        width: '38px',   /* ✅ 32px ~ 38px 사이가 가장 적당해요! */
+                        height: '38px', 
+                        objectFit: 'contain', /* ✅ 이미지가 잘리지 않고 비율에 맞춰 쏙 들어오게 함 */
+                        display: 'block'
+                      }} 
+                    />
+                  )}
+                </div>
               </button>
             )
           })}
